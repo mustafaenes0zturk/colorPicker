@@ -112,8 +112,7 @@ function ColorCard({
   updateTag,
   startEditing,
   palettes,
-  addColorToPalette,
-  generateShareableUrl
+  addColorToPalette
 }: { 
   color: SavedColor
   index: number
@@ -132,7 +131,6 @@ function ColorCard({
   startEditing: (paletteId: string, index: number, tag: string) => void
   palettes: Palette[]
   addColorToPalette: (targetPaletteId: string, color: SavedColor) => void
-  generateShareableUrl: (type: 'color' | 'palette', data: any) => string
 }) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'COLOR',
@@ -174,22 +172,6 @@ function ColorCard({
               <path d="M3 8.625c0-1.036.84-1.875 1.875-1.875h.375A3.75 3.75 0 019 10.5v1.875c0 1.036.84 1.875 1.875 1.875h1.875A3.75 3.75 0 0116.5 18v2.625c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625v-12z" />
             </svg>
           </button>
-          <button
-            onClick={() => {
-              const shareUrl = generateShareableUrl('color', savedColor.color);
-              copyToClipboard(shareUrl);
-            }}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-              isDarkMode 
-                ? 'bg-zinc-700 text-gray-200 hover:bg-zinc-600' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            title="Copy shareable link"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-              <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 00-5.304 0l-4.5 4.5a3.75 3.75 0 001.035 6.037.75.75 0 01-.646 1.353 5.25 5.25 0 01-1.449-8.45l4.5-4.5a5.25 5.25 0 117.424 7.424l-1.757 1.757a.75.75 0 11-1.06-1.06l1.757-1.757a3.75 3.75 0 000-5.304zm-7.389 4.267a.75.75 0 011.06 0l1.757 1.757a3.75 3.75 0 01-5.304 5.304l-4.5-4.5a3.75 3.75 0 011.035-6.037.75.75 0 11.646 1.353 2.25 2.25 0 00-.621 3.622l4.5 4.5a2.25 2.25 0 003.182-3.182l-1.757-1.757a.75.75 0 010-1.06z" />
-            </svg>
-          </button>
         </div>
         <button
           onClick={() => deleteColor(paletteId, index)}
@@ -211,7 +193,11 @@ function ColorCard({
           value={editingTag}
           onChange={(e) => setEditingTag(e.target.value)}
           onKeyDown={(e) => handleTagKeyPress(e, paletteId, index)}
-          onBlur={() => updateTag(paletteId, index)}
+          onBlur={() => {
+            if (editingTag.trim()) {
+              updateTag(paletteId, index)
+            }
+          }}
           className={`w-full px-2 py-1 text-xs rounded border ${
             isDarkMode 
               ? 'bg-zinc-700 text-gray-100 border-zinc-600' 
@@ -269,37 +255,6 @@ function App() {
   const [magnifierColor, setMagnifierColor] = useState<string>('#ffffff')
   const [zoomedCanvas, setZoomedCanvas] = useState<HTMLCanvasElement | null>(null);
 
-  // Add URL sharing functions
-  const generateShareableUrl = (type: 'color' | 'palette', data: any) => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    const encodedData = encodeURIComponent(JSON.stringify(data));
-    return `${baseUrl}?type=${type}&data=${encodedData}`;
-  };
-
-  const handleShareableUrl = () => {
-    const params = new URLSearchParams(window.location.search);
-    const type = params.get('type');
-    const data = params.get('data');
-    
-    if (type && data) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(data));
-        if (type === 'color') {
-          setColor(decodedData);
-        } else if (type === 'palette') {
-          setPalettes(prev => [...prev, decodedData]);
-        }
-      } catch (error) {
-        console.error('Invalid share URL');
-      }
-    }
-  };
-
-  // Check for shared URL on component mount
-  useEffect(() => {
-    handleShareableUrl();
-  }, []);
-
   // Save palettes to localStorage when they change
   useEffect(() => {
     localStorage.setItem('palettes', JSON.stringify(palettes))
@@ -328,10 +283,13 @@ function App() {
   }
 
   const renamePalette = (id: string, newName: string) => {
-    setPalettes(palettes.map(p => 
-      p.id === id ? { ...p, name: newName } : p
-    ))
-    setEditingPaletteName(null)
+    if (newName.trim()) {
+      setPalettes(prevPalettes => prevPalettes.map(p => 
+        p.id === id ? { ...p, name: newName.trim() } : p
+      ))
+      setEditingPaletteName(null)
+      setNewPaletteName('')
+    }
   }
 
   const saveColor = () => {
@@ -368,24 +326,29 @@ function App() {
   }
 
   const updateTag = (paletteId: string, index: number) => {
-    setPalettes(palettes.map(palette => {
-      if (palette.id === paletteId) {
-        const updatedColors = [...palette.colors]
-        updatedColors[index].tag = editingTag || `Color ${index + 1}`
-        return { ...palette, colors: updatedColors }
-      }
-      return palette
-    }))
-    setEditingPaletteId(null)
-    setEditingIndex(null)
-    setEditingTag('')
+    if (editingTag.trim()) {
+      setPalettes(prevPalettes => prevPalettes.map(palette => {
+        if (palette.id === paletteId) {
+          const updatedColors = [...palette.colors]
+          updatedColors[index] = { ...updatedColors[index], tag: editingTag.trim() }
+          return { ...palette, colors: updatedColors }
+        }
+        return palette
+      }))
+      setEditingPaletteId(null)
+      setEditingIndex(null)
+      setEditingTag('')
+    }
   }
 
   const handlePaletteKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, id: string) => {
     if (e.key === 'Enter') {
-      renamePalette(id, newPaletteName)
+      if (newPaletteName.trim()) {
+        renamePalette(id, newPaletteName)
+      }
     } else if (e.key === 'Escape') {
       setEditingPaletteName(null)
+      setNewPaletteName('')
     }
   }
 
@@ -397,7 +360,9 @@ function App() {
 
   const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, paletteId: string, index: number) => {
     if (e.key === 'Enter') {
-      updateTag(paletteId, index)
+      if (editingTag.trim()) {
+        updateTag(paletteId, index)
+      }
     } else if (e.key === 'Escape') {
       setEditingPaletteId(null)
       setEditingIndex(null)
@@ -1429,7 +1394,11 @@ function App() {
                               value={newPaletteName}
                               onChange={(e) => setNewPaletteName(e.target.value)}
                               onKeyDown={(e) => handlePaletteKeyPress(e, palette.id)}
-                              onBlur={() => renamePalette(palette.id, newPaletteName)}
+                              onBlur={() => {
+                                if (newPaletteName.trim()) {
+                                  renamePalette(palette.id, newPaletteName)
+                                }
+                              }}
                               className={`text-lg font-semibold px-2 py-1 rounded ${
                                 isDarkMode 
                                   ? 'bg-zinc-700 text-white border-zinc-600' 
@@ -1463,22 +1432,6 @@ function App() {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              const shareUrl = generateShareableUrl('palette', palette);
-                              copyToClipboard(shareUrl);
-                            }}
-                            className={`p-2 rounded-md transition-colors ${
-                              isDarkMode 
-                                ? 'text-gray-400 hover:text-gray-300 hover:bg-zinc-700' 
-                                : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'
-                            }`}
-                            title="Copy shareable link"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                              <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 00-5.304 0l-4.5 4.5a3.75 3.75 0 001.035 6.037.75.75 0 01-.646 1.353 5.25 5.25 0 01-1.449-8.45l4.5-4.5a5.25 5.25 0 117.424 7.424l-1.757 1.757a.75.75 0 11-1.06-1.06l1.757-1.757a3.75 3.75 0 000-5.304zm-7.389 4.267a.75.75 0 011.06 0l1.757 1.757a3.75 3.75 0 01-5.304 5.304l-4.5-4.5a3.75 3.75 0 011.035-6.037.75.75 0 11.646 1.353 2.25 2.25 0 00-.621 3.622l4.5 4.5a2.25 2.25 0 003.182-3.182l-1.757-1.757a.75.75 0 010-1.06z" />
-                            </svg>
-                          </button>
                           <div className="relative group">
                             <button
                               className={`px-3 py-1 text-sm rounded transition-colors font-medium flex items-center gap-1 ${
@@ -1614,7 +1567,6 @@ function App() {
                                     startEditing={startEditing}
                                     palettes={palettes}
                                     addColorToPalette={addColorToPalette}
-                                    generateShareableUrl={generateShareableUrl}
                                   />
                                 </div>
                               </React.Fragment>
