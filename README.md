@@ -3,7 +3,6 @@
 Modern ve kullanıcı dostu bir renk seçici ve palet yönetim aracı.
 
 ## Özellikler
-
 - 🎨 Gelişmiş renk seçici
 - 📊 HEX, RGB ve HSL renk formatları
 - 💾 Renk paleti oluşturma ve yönetme
@@ -13,11 +12,20 @@ Modern ve kullanıcı dostu bir renk seçici ve palet yönetim aracı.
 - 🔄 Sürükle-bırak renk düzenleme
 - 💻 Çoklu dışa aktarma formatları (JSON, CSS, SCSS, TXT, PNG)
 
-
 ## Kullanılan Teknolojiler
-
 - React
 - TypeScript
 - Tailwind CSS
 - Vite
 - React DnD (Sürükle-Bırak)
+  
+## Proje Görselleri
+
+### Ana Sayfa
+![Ana Sayfa](./first.png)
+
+### Renk Seçici
+![Renk Seçici](./gorsel.png)
+
+### Tüm Paletler
+![Tüm Paletler](./all-palettes.png)
