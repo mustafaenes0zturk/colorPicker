@@ -112,7 +112,8 @@ function ColorCard({
   updateTag,
   startEditing,
   palettes,
-  addColorToPalette
+  addColorToPalette,
+  generateShareableUrl
 }: { 
   color: SavedColor
   index: number
@@ -131,6 +132,7 @@ function ColorCard({
   startEditing: (paletteId: string, index: number, tag: string) => void
   palettes: Palette[]
   addColorToPalette: (targetPaletteId: string, color: SavedColor) => void
+  generateShareableUrl: (type: 'color' | 'palette', data: any) => string
 }) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'COLOR',
@@ -142,7 +144,7 @@ function ColorCard({
 
   return (
     <div 
-      ref={drag}
+      ref={editingIndex === index && editingPaletteId === paletteId ? null : drag}
       className={`flex flex-col gap-2 p-3 rounded-lg border transition-transform ${
         isDragging ? 'opacity-50 scale-95' : ''
       } ${
@@ -157,20 +159,38 @@ function ColorCard({
         onClick={() => setColor(savedColor.color)}
       />
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => copyToClipboard(savedColor.color)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition-colors ${
-            isDarkMode 
-              ? 'bg-zinc-700 text-gray-200 hover:bg-zinc-600' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          {savedColor.color}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-            <path fillRule="evenodd" d="M17.663 3.118c.225.015.45.032.673.05C19.876 3.298 21 4.604 21 6.109v9.642a3 3 0 01-3 3V16.5c0-5.922-4.576-10.775-10.384-11.217.324-1.132 1.3-2.01 2.548-2.114.224-.019.448-.036.673-.051A3 3 0 0113.5 1.5H15a3 3 0 012.663 1.618zM12 4.5A1.5 1.5 0 0113.5 3H15a1.5 1.5 0 011.5 1.5H12z" />
-            <path d="M3 8.625c0-1.036.84-1.875 1.875-1.875h.375A3.75 3.75 0 019 10.5v1.875c0 1.036.84 1.875 1.875 1.875h1.875A3.75 3.75 0 0116.5 18v2.625c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625v-12z" />
-          </svg>
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => copyToClipboard(savedColor.color)}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition-colors ${
+              isDarkMode 
+                ? 'bg-zinc-700 text-gray-200 hover:bg-zinc-600' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {savedColor.color}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+              <path fillRule="evenodd" d="M17.663 3.118c.225.015.45.032.673.05C19.876 3.298 21 4.604 21 6.109v9.642a3 3 0 01-3 3V16.5c0-5.922-4.576-10.775-10.384-11.217.324-1.132 1.3-2.01 2.548-2.114.224-.019.448-.036.673-.051A3 3 0 0113.5 1.5H15a3 3 0 012.663 1.618zM12 4.5A1.5 1.5 0 0113.5 3H15a1.5 1.5 0 011.5 1.5H12z" />
+              <path d="M3 8.625c0-1.036.84-1.875 1.875-1.875h.375A3.75 3.75 0 019 10.5v1.875c0 1.036.84 1.875 1.875 1.875h1.875A3.75 3.75 0 0116.5 18v2.625c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 013 20.625v-12z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => {
+              const shareUrl = generateShareableUrl('color', savedColor.color);
+              copyToClipboard(shareUrl);
+            }}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+              isDarkMode 
+                ? 'bg-zinc-700 text-gray-200 hover:bg-zinc-600' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            title="Copy shareable link"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+              <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 00-5.304 0l-4.5 4.5a3.75 3.75 0 001.035 6.037.75.75 0 01-.646 1.353 5.25 5.25 0 01-1.449-8.45l4.5-4.5a5.25 5.25 0 117.424 7.424l-1.757 1.757a.75.75 0 11-1.06-1.06l1.757-1.757a3.75 3.75 0 000-5.304zm-7.389 4.267a.75.75 0 011.06 0l1.757 1.757a3.75 3.75 0 01-5.304 5.304l-4.5-4.5a3.75 3.75 0 011.035-6.037.75.75 0 11.646 1.353 2.25 2.25 0 00-.621 3.622l4.5 4.5a2.25 2.25 0 003.182-3.182l-1.757-1.757a.75.75 0 010-1.06z" />
+            </svg>
+          </button>
+        </div>
         <button
           onClick={() => deleteColor(paletteId, index)}
           className={`p-1 transition-colors ${
@@ -248,6 +268,37 @@ function App() {
   const [magnifierPosition, setMagnifierPosition] = useState<{ x: number; y: number } | null>(null)
   const [magnifierColor, setMagnifierColor] = useState<string>('#ffffff')
   const [zoomedCanvas, setZoomedCanvas] = useState<HTMLCanvasElement | null>(null);
+
+  // Add URL sharing functions
+  const generateShareableUrl = (type: 'color' | 'palette', data: any) => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    return `${baseUrl}?type=${type}&data=${encodedData}`;
+  };
+
+  const handleShareableUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type');
+    const data = params.get('data');
+    
+    if (type && data) {
+      try {
+        const decodedData = JSON.parse(decodeURIComponent(data));
+        if (type === 'color') {
+          setColor(decodedData);
+        } else if (type === 'palette') {
+          setPalettes(prev => [...prev, decodedData]);
+        }
+      } catch (error) {
+        console.error('Invalid share URL');
+      }
+    }
+  };
+
+  // Check for shared URL on component mount
+  useEffect(() => {
+    handleShareableUrl();
+  }, []);
 
   // Save palettes to localStorage when they change
   useEffect(() => {
@@ -420,6 +471,38 @@ function App() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
+    // Create and show notification
+    const notification = document.createElement('div')
+    notification.className = `fixed bottom-4 right-4 px-4 py-2 rounded-lg text-white bg-green-500 shadow-lg transition-all duration-300 flex items-center gap-2`
+    
+    // Add check icon
+    notification.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+        <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" />
+      </svg>
+      <span>Kopyalandı!</span>
+    `
+    
+    document.body.appendChild(notification)
+    
+    // Add initial transform
+    notification.style.transform = 'translateY(100px)'
+    notification.style.opacity = '0'
+    
+    // Trigger animation
+    setTimeout(() => {
+      notification.style.transform = 'translateY(0)'
+      notification.style.opacity = '1'
+    }, 0)
+    
+    // Remove notification after 2 seconds
+    setTimeout(() => {
+      notification.style.transform = 'translateY(100px)'
+      notification.style.opacity = '0'
+      setTimeout(() => {
+        document.body.removeChild(notification)
+      }, 300)
+    }, 2000)
   }
 
   // Add export functions
@@ -1340,26 +1423,62 @@ function App() {
                     }`}>
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {palette.name}
-                          </h3>
-                          <button
-                            onClick={() => {
-                              setEditingPaletteName(palette.id)
-                              setNewPaletteName(palette.name)
-                            }}
-                            className={`p-1 rounded-full transition-colors ${
-                              isDarkMode 
-                                ? 'hover:bg-zinc-700' 
-                                : 'hover:bg-gray-200'
-                            }`}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-3 h-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
-                            </svg>
-                          </button>
+                          {editingPaletteName === palette.id ? (
+                            <input
+                              type="text"
+                              value={newPaletteName}
+                              onChange={(e) => setNewPaletteName(e.target.value)}
+                              onKeyDown={(e) => handlePaletteKeyPress(e, palette.id)}
+                              onBlur={() => renamePalette(palette.id, newPaletteName)}
+                              className={`text-lg font-semibold px-2 py-1 rounded ${
+                                isDarkMode 
+                                  ? 'bg-zinc-700 text-white border-zinc-600' 
+                                  : 'bg-white text-gray-900 border-gray-200'
+                              } border`}
+                              autoFocus
+                            />
+                          ) : (
+                            <>
+                              <h3 className={`text-lg font-semibold ${
+                                isDarkMode ? 'text-white' : 'text-gray-900'
+                              }`}>
+                                {palette.name}
+                              </h3>
+                              <button
+                                onClick={() => {
+                                  setEditingPaletteName(palette.id)
+                                  setNewPaletteName(palette.name)
+                                }}
+                                className={`p-1 rounded-full transition-colors ${
+                                  isDarkMode 
+                                    ? 'hover:bg-zinc-700' 
+                                    : 'hover:bg-gray-200'
+                                }`}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-3 h-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                  <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" />
+                                </svg>
+                              </button>
+                            </>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const shareUrl = generateShareableUrl('palette', palette);
+                              copyToClipboard(shareUrl);
+                            }}
+                            className={`p-2 rounded-md transition-colors ${
+                              isDarkMode 
+                                ? 'text-gray-400 hover:text-gray-300 hover:bg-zinc-700' 
+                                : 'text-gray-500 hover:text-gray-600 hover:bg-gray-100'
+                            }`}
+                            title="Copy shareable link"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                              <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 00-5.304 0l-4.5 4.5a3.75 3.75 0 001.035 6.037.75.75 0 01-.646 1.353 5.25 5.25 0 01-1.449-8.45l4.5-4.5a5.25 5.25 0 117.424 7.424l-1.757 1.757a.75.75 0 11-1.06-1.06l1.757-1.757a3.75 3.75 0 000-5.304zm-7.389 4.267a.75.75 0 011.06 0l1.757 1.757a3.75 3.75 0 01-5.304 5.304l-4.5-4.5a3.75 3.75 0 011.035-6.037.75.75 0 11.646 1.353 2.25 2.25 0 00-.621 3.622l4.5 4.5a2.25 2.25 0 003.182-3.182l-1.757-1.757a.75.75 0 010-1.06z" />
+                            </svg>
+                          </button>
                           <div className="relative group">
                             <button
                               className={`px-3 py-1 text-sm rounded transition-colors font-medium flex items-center gap-1 ${
@@ -1495,6 +1614,7 @@ function App() {
                                     startEditing={startEditing}
                                     palettes={palettes}
                                     addColorToPalette={addColorToPalette}
+                                    generateShareableUrl={generateShareableUrl}
                                   />
                                 </div>
                               </React.Fragment>
