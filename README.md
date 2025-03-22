@@ -27,5 +27,5 @@ Modern ve kullanıcı dostu bir renk seçici ve palet yönetim aracı.
 ### Renk Seçici
 ![Renk Seçici](./gorsel.png)
 
-### Tüm Paletler
+### Dışa Aktarma
 ![Tüm Paletler](./all-palettes.png)
