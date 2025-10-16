@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/colorpicker/', // 🔥 GitHub Pages alt dizin yolu
+  base: '/colorpicker/', 
   plugins: [react()],
   build: {
     outDir: 'dist',
