@@ -1,4 +1,4 @@
-# Online Color Picker 🎨
+# Online Renk Paleti 🎨
 
 Modern ve kullanıcı dostu bir renk seçici ve palet yönetim aracı.
 
