@@ -1,9 +1,9 @@
-name: Deploy builded site to GitHub Pages
+name: Deploy Vite + React site to GitHub Pages
 
 on:
   push:
     branches:
-      - main  
+      - master
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run build
+        run: npm run build -- --base=/colorpicker/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist 
+          path: ./dist
 
       - name: Deploy to GitHub Pages
         id: deployment
